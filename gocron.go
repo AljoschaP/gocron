@@ -156,7 +156,7 @@ func (j *Job) At(t string) *Job {
 
 //Compute the instant when this job should run next
 func (j *Job) scheduleNextRun() {
-	if j.lastRun == time.Unix(0, 0) {
+	if j.lastRun == time.Unix(0, 1) {
 		if j.unit == "weeks" {
 			i := time.Now().Weekday() - j.startDay
 			if i < 0 {
@@ -171,25 +171,28 @@ func (j *Job) scheduleNextRun() {
 
 	if j.period != 0 {
 		// translate all the units to the Seconds
-		j.nextRun = j.lastRun.Add(j.period * time.Second)
+		j.nextRun = j.lastRun.Add(j.period * time.Nanosecond)
 	} else {
 		switch j.unit {
 		case "minutes":
-			j.period = time.Duration(j.interval * 60)
+			j.period = time.Duration(j.interval * 1000000000 * 60)
 			break
 		case "hours":
-			j.period = time.Duration(j.interval * 60 * 60)
+			j.period = time.Duration(j.interval * 1000000000 * 60 * 60)
 			break
 		case "days":
-			j.period = time.Duration(j.interval * 60 * 60 * 24)
+			j.period = time.Duration(j.interval * 1000000000 * 60 * 60 * 24)
 			break
 		case "weeks":
-			j.period = time.Duration(j.interval * 60 * 60 * 24 * 7)
+			j.period = time.Duration(j.interval * 1000000000 * 60 * 60 * 24 * 7)
 			break
 		case "seconds":
-			j.period = time.Duration(j.interval)
+			j.period = time.Duration(j.interval * 1000000000)
+			break
+			case "milliseconds":
+			j.period = time.Duration(j.interval * 1000000)
 		}
-		j.nextRun = j.lastRun.Add(j.period * time.Second)
+		j.nextRun = j.lastRun.Add(j.period * time.Nanosecond)
 	}
 }
 
@@ -207,6 +210,19 @@ func (j *Job) Second() (job *Job) {
 // Set the unit with seconds
 func (j *Job) Seconds() (job *Job) {
 	j.unit = "seconds"
+	return j
+}
+
+func (j *Job) MilliSecond (job *Job){
+		if j.interval != 1 {
+		panic("")
+	}
+	job = j.MilliSeconds()
+	return
+}
+
+func (j *Job) MilliSeconds() (job *Job){
+	j.unit = "milliseconds"
 	return j
 }
 
